@@ -1,0 +1,59 @@
+---
+
+- name: Install Prerequisites
+  become: yes
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+    update_cache: yes
+
+- name: Create Keyrings
+  become: yes
+  ansible.builtin.command:
+    cmd: install -m 0755 -d /etc/apt/keyrings
+    creates: /etc/apt/keyrings
+
+- name: Download Docker GPG Key
+  become: yes
+  ansible.builtin.get_url:
+    url: "{{ docker_host.gpg_key.url }}"
+    dest: "{{ docker_host.gpg_key.dest }}"
+    mode: a+r
+
+- name: Create Repository File
+  become: yes
+  block:
+    - name: Get Architecture
+      block:
+        - name: Run dpkg Command
+          ansible.builtin.command:
+            cmd: dpkg --print-architecture
+          register: dpkg_out
+          changed_when: no
+        - name: Set docker_host_architecture
+          ansible.builtin.set_fact:
+            docker_host_architecture: "{{ dpkg_out.stdout | trim }}"
+    - name: Get OS Version Codename
+      block:
+        - name: Read os-release
+          ansible.builtin.command:
+            cmd: grep VERSION_CODENAME /etc/os-release
+          register: os_release_out
+          changed_when: no
+        - name: Set docker_host_version_codename
+          vars:
+            codename: "{{ os_release_out.stdout | split('=') | last | trim }}"
+          ansible.builtin.set_fact:
+            docker_host_version_codename: "{{ codename | replace('\"','') }}"
+    - name: Write Repository File
+      ansible.builtin.copy:
+        dest: "{{ docker_host.docker_repository.file }}"
+        content: >-
+          deb [arch={{ docker_host_architecture }} signed-by={{ docker_host.gpg_key.dest }}]
+          {{ docker_host.docker_repository.url }} {{ docker_host_version_codename }} stable
+
+- name: Update Package Cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes

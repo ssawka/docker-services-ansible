@@ -1,0 +1,84 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for docker_host
+
+- name: Read OS Specific Variables
+  ansible.builtin.include_vars: "{{lookup('ansible.builtin.first_found', params)}}"
+  vars:
+    params:
+      files:
+        - '{{ ansible_distribution }}{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      paths:
+        - 'vars'
+      skip: yes
+
+- name: Get Service List
+  become: yes
+  ansible.builtin.service_facts:
+  when: "'services' not in ansible_facts"
+
+- name: Stop Docker Services
+  become: yes
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+  when: "'docker.service' in ansible_facts.services"
+  with_items:
+    - docker.service
+    - docker.socket
+
+- name: Ensure docker Group Exists
+  become: yes
+  ansible.builtin.group:
+    name: docker
+    gid: "{{ docker_host_gid }}"
+    state: present
+
+- name: Ensure docker User Exists
+  become: yes
+  ansible.builtin.user:
+    name: docker
+    state: present
+    uid: "{{ docker_host_uid }}"
+    group: docker
+    comment: Docker User
+    home: /srv/docker
+    password_lock: yes
+    shell: /usr/bin/bash
+
+- name: Remove Obsolete Packages
+  become: yes
+  ansible.builtin.package:
+    name: "{{ docker_host.obsolete_packages }}"
+    state: absent
+  when: ('docker.service' not in ansible_facts.services) or docker_host_update
+
+- name: Create Repository File
+  ansible.builtin.include_tasks: "{{lookup('ansible.builtin.first_found', params)}}"
+  vars:
+    params:
+      files:
+        - '{{ ansible_distribution }}{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+      paths:
+        - 'tasks/create_repository'
+      skip: yes
+
+- name: Install Docker
+  become: yes
+  ansible.builtin.package:
+    name: "{{ docker_host.docker_packages }}"
+    state: "{{ docker_host_update | bool | ternary('latest', 'present') }}"
+
+- name: Start and Enable Docker Service
+  become: yes
+  ansible.builtin.systemd_service:
+    name: docker.service
+    state: started
+    enabled: yes
+    masked: no

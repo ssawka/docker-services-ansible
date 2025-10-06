@@ -1,0 +1,30 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for docker_files
+
+- name: Ensure Output Directory Exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ docker_files_output_dir }}"
+    state: directory
+    owner: "{{ docker_files_user }}"
+    group: "{{ docker_files_group }}"
+    mode: '2775'
+
+- name: Include Service Roles
+  vars:
+    docker_service_root_dir: "{{ docker_files_output_dir }}"
+  ansible.builtin.include_role:
+    name: "{{ item }}"
+  with_items: "{{ docker_files_included_services }}"
+
+- name: Generate Docker Files
+  become: yes
+  block:
+    - name: Generate docker-compose.yml
+      ansible.builtin.template:
+        src: templates/docker-compose.yml.j2
+        dest: "{{ [docker_files_output_dir, 'docker-compose.yml'] | path_join }}"
+        owner: "{{ docker_files_user }}"
+        group: "{{ docker_files_group }}"
+        mode: '0664'

@@ -1,0 +1,23 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for docker_host (Debian)
+docker_host:
+  obsolete_packages:
+    - docker.io
+    - docker-doc
+    - docker-compose
+    - podman-docker
+    - containerd
+    - runc
+  docker_packages:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
+    - docker-compose-plugin
+  gpg_key:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+  docker_repository:
+    url: https://download.docker.com/linux/debian
+    file: /etc/apt/sources.list.d/docker.list

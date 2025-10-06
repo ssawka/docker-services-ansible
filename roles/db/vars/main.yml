@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for db
+db:
+  environment_vars:
+    MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+  local_volumes:
+    db_data: /var/lib/mysql
+    db_config: /etc/mysql
+  shared_volumes:
+    db_init: /docker-entrypoint-initdb.d
+  secrets:
+    db_root_password: ./secrets/db_root_password.txt

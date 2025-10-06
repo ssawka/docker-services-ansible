@@ -1,0 +1,6 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for docker_host
+docker_host_update: yes
+docker_host_uid: 1001
+docker_host_gid: "{{ docker_host_uid }}"

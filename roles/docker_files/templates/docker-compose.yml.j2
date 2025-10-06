@@ -1,0 +1,20 @@
+#jinja2:lstrip_blocks: True
+---
+{% if (docker_files.includes  | length) %}
+include:
+    {% for inc in docker_files.includes %}
+    - {{ inc }}
+    {% endfor %}
+{% endif %}
+networks:
+    internal:
+        name: {{ docker_files_internal_network_name }}
+        internal: true
+    external:
+        name: {{ docker_files_external_network_name }}
+{% if (docker_files.shared_volumes | length) %}
+volumes:
+    {% for key, value in docker_files.shared_volumes.items() %}
+    {{ key }}:
+    {% endfor %}
+{% endif %}

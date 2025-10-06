@@ -1,0 +1,51 @@
+#jinja2:lstrip_blocks: True
+---
+services:
+  {{ db_service_name }}:
+    image: {{ db_image }}
+    container_name: {{ db_container_name }}
+    restart: {{ db_restart }}
+    {% if (db_networks | length) %}
+    networks:
+      {% for net in db_networks %}
+      - {{ net }}
+      {% endfor %}
+    {% endif %}
+    {% if (db_port | trim | length) %}
+    expose:
+      - {{ db_port }}
+    {% endif %}
+    {% if (environment_vars | default([]) | length) %}
+    environment:
+      {% for key, value in environment_vars.items() %}
+      {{ key }}: {{ value }}
+      {% endfor %}
+    {% endif %}
+    {% if (local_volumes | length) + (shared_volumes | length) %}
+    volumes:
+      {% for key, value in local_volumes.items() %}
+      - {{ key }}:{{ value }}
+      {% endfor %}
+      {% for key, value in shared_volumes.items() %}
+      - {{ key }}:{{ value }}:Z
+      {% endfor %}
+    {% endif %}
+    {% if (secrets | length) %}
+    secrets:
+      {% for key, value in secrets.items() %}
+      - {{ key }}
+      {% endfor %}
+    {% endif %}
+{% if (local_volumes | length) %}
+volumes:
+  {% for key, value in local_volumes.items() %}
+  {{ key }}:
+  {% endfor %}
+{% endif %}
+{% if (secrets | length) %}
+secrets:
+  {% for key, value in secrets.items() %}
+  {{ key }}:
+    file: {{ value }}
+  {% endfor %}  
+{% endif %}

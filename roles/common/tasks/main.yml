@@ -1,0 +1,26 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for common
+
+- name: Normalize Hostname
+  vars:
+    parts: "{{ common_host_name | split('.') }}"
+    host_name: "{{ parts | first }}"
+    domain_name: "{{ common_domain_name | trim | length | ternary(common_domain_name, parts[1:] | join('.')) }}"
+  ansible.builtin.set_fact:
+    common_hostname: "{{ host_name }}"
+    common_domain_name: "{{ domain_name }}"
+
+- name: Set Hostname
+  become: yes
+  ansible.builtin.hostname:
+    name: "{{ common_hostname }}"
+
+- name: Update /etc/hosts
+  become: yes
+  vars:
+    default_ipv4_address: "{{ hostvars[inventory_hostname].ansible_default_ipv4.address }}"
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "{{ common_hostname }}\\s+"
+    line: "{{ default_ipv4_address }}  {{ common_hostname }}.{{ common_domain_name }} {{ common_hostname }}"

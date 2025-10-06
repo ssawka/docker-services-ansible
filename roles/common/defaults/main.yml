@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for common
+common_host_name: "{{ inventory_hostname }}"
+common_domain_name: ""

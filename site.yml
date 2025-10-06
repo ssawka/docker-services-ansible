@@ -1,0 +1,19 @@
+---
+
+- name: Setup home-sawka.us
+  hosts: home_sawka_us_gateways
+  tasks:
+    - name: Run Common Tasks
+      vars:
+        common_domain_name: "{{ docker_services_ansible_domain_name }}"
+      ansible.builtin.include_role:
+        name: common
+    # - name: Install Docker
+    #   ansible.builtin.include_role:
+    #     name: docker_host
+    - name: Generate Docker Files
+      vars:
+        docker_files_included_services:
+          - db
+      ansible.builtin.include_role:
+        name: docker_files

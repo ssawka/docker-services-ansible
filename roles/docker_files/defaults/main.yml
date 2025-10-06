@@ -1,0 +1,10 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for docker_files
+docker_files_output_dir: /srv/docker
+docker_files_external_network_name: external
+docker_files_internal_network_name: internal
+docker_files_user: docker
+docker_files_group: docker
+docker_files_included_services: []
+docker_files_volume_directory: /var/lib/docker/volumes

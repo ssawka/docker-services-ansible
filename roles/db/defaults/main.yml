@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for db
+docker_service_root_dir: /srv/docker
+db_role_name: "{{ ansible_role_name | split('.') | last }}"
+db_output_dir: "{{ [docker_service_root_dir, db_role_name] | path_join }}"
+
+db_image: "mariadb:12.0.2"
+db_service_name: "{{ ansible_role_name | split('.') | last }}"
+db_container_name: "{{ db_service_name }}"
+db_restart: unless-stopped
+db_networks:
+  - internal
+db_port: 3306
+db_environment_vars: {}
+db_system_user: docker
+db_system_group: docker
+db_local_volumes: {}
+db_shared_volumes: {}
+db_secrets: {}

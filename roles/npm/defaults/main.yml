@@ -1,0 +1,41 @@
+---
+# defaults file for npm
+#SPDX-License-Identifier: MIT-0
+
+docker_service_root_dir: /srv/docker
+npm_role_name: "{{ ansible_role_name | split('.') | last }}"
+npm_output_dir: "{{ [docker_service_root_dir, npm_role_name] | path_join }}"
+
+npm_image: "jc21/nginx-proxy-manager"
+npm_version: ""
+
+npm_service_name: "{{ npm_role_name }}"
+npm_container_name: "{{ npm_service_name }}"
+npm_restart: unless-stopped
+npm_networks:
+  - internal
+  - external
+
+npm_ports:
+  80: 80
+  81: 81
+  443: 443
+
+npm_local_volumes:
+  npm_data: "/data"
+  letsencrypt: "/etc/letsencrypt"
+
+npm_shared_volumes: {}
+
+npm_depends_on: ["{{ db_service_name | default('db') }}"]
+
+npm_db_host: "{{ db_service_name | default('db') }}"
+npm_db_port: "{{ db_port | default(3306) | int }}"
+npm_db_user: "{{ npm_role_name }}"
+npm_db_name: "{{ npm_role_nam }}"
+
+npm_system_user: docker
+npm_system_group: docker
+npm_environment_variables: {}
+npm_secrets: {}
+

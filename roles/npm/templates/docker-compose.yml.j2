@@ -1,0 +1,69 @@
+#jinja2:lstrip_blocks: True
+---
+services:
+  {{ service_name }}:
+    image: {{ image }}
+    container_name: {{ container_name }}
+    restart: {{ restart }}
+    {% if (networks | length) %}
+    networks:
+      {% for net in networks %}
+      - {{ net }}
+      {% endfor %}
+    {% endif %}
+    {% if (ports | default({}) | length) %}
+    ports:
+      {% for key, value in ports.items() %}
+      - "{{ key }}:{{ value }}"
+      {% endfor %}
+    {% endif %}
+    {% if (expose | default([]) | length) %}
+    expose:
+      {% for exp in expose %}
+      - {{ exp }}
+      {% endfor %}
+    {% endif %}
+    {% if (environment_vars | default({}) | length) %}
+    environment:
+      {% for key, value in environment_vars.items() %}
+      {{ key }}: {{ value }}
+      {% endfor %}
+    {% endif %}
+    {% if (local_volumes | default({}) | length) + (shared_volumes | default({}) | length) %}
+    volumes:
+      {% if (local_volumes | default({}) | length) %}
+      {% for key, value in local_volumes.items() %}
+      - {{ key }}:{{ value }}
+      {% endfor %}
+      {% endif %}
+      {% if (shared_volumes | default({}) | length) %}
+      {% for key, value in shared_volumes.items() %}
+      - {{ key }}:{{ value }}:Z
+      {% endfor %}
+      {% endif %}
+    {% endif %}
+    {% if (secrets | default({}) | length) %}
+    secrets:
+      {% for key, value in secrets.items() %}
+      - {{ key }}
+      {% endfor %}
+    {% endif %}
+    {% if (depends_on | default([]) | length) %}
+      {% for dep in depends_on %}
+      - {{ dep }}
+      {% endfor %}
+    {% endif %}
+{% if (local_volumes | defaults({}) | length) %}
+volumes:
+  {% for key, value in local_volumes.items() %}
+  {{ key }}:
+  {% endfor %}
+{% endif %}
+{% if (secrets | default({}) | length) %}
+secrets:
+  {% for key, value in secrets.items() %}
+  {{ key }}:
+    file: {{ value }}
+  {% endfor %}  
+{% endif %}
+

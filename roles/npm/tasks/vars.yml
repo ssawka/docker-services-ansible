@@ -1,0 +1,114 @@
+---
+#SPDX-License-Identifier: MIT-0
+
+- name: Validate And Normalize npm_output_dir
+  block:
+    - name: Validate npm_output_dir
+      ansible.builtin.assert:
+        that:
+          - npm_output_dir is defined
+          - npm_output_dir is string
+          - (npm_output_dir | trim | length) > 0
+    - name: Normalize npm_output_dir
+      ansible.builtin.set_fact:
+        npm_output_dir: "{{ npm_output_dir | trim | ansible.builtin.realpath }}"
+
+- name: Validate And Normalize npm_image And npm_version
+  block:
+    - name: Validate npm_image
+      ansible.builtin.assert:
+        that:
+          - npm_image is defined
+          - npm_image is string
+          - (npm_image | trim | length) > 0
+    - name: Parse npm_image
+      vars:
+        parts: "{{ npm_image | split(':') }}"
+        version: "{{ npm_version | default('') | trim }}"
+      block:
+        - name: Update npm_image
+          ansible.builtin.set_fact:
+            npm_image: "{{ parts | list | first }}"
+          when: (parts | list | length) > 1
+        - name: Update npm_version
+          vars:
+            version: "{{ (parts | list | length) > 1 | ternary((parts | last | trim), 'latest' }}"
+          ansible.builtin.set_fact:
+            npm_version: "{{ version }}"
+          when: >-
+            npm_version is undefined or (
+              npm_version is string and
+              (npm_version | trim | length) == 0
+            )
+    - name: Validate npm_version
+      ansible.builtin.assert:
+      that:
+        - npm_version is defined
+        - npm_version is string
+        - (npm_version | trim | length) > 0
+
+- name: Validate And Normalize npm_service_name
+  block:
+    - name: Validate npm_service_name
+      ansible.builtin.assert:
+        that:
+          - npm_service_name is defined
+          - npm_service_name is string
+          - (npm_service_name | trim | length) > 0
+    - name: Normalize npm_service_name
+      ansible.builtin.set_fact:
+        npm_service_name: "{{ npm_service_name | trim }}"
+
+- name: Validate And Normalize npm_container_name
+  block:
+    - name: Validate npm_container_name
+      ansible.builtin.assert:
+        that:
+          - npm_container_name is defined
+          - npm_container_name is string
+          - (npm_container_name | trim | length) > 0
+    - name: Normalize npm_container_name
+      ansible.builtin.set_fact:
+        npm_container_name: "{{ npm_container_name | trim }}"
+
+npm_restart: unless-stopped
+npm_networks:
+  - internal
+  - external
+
+npm_ports:
+  80: 80
+  81: 81
+  443: 443
+
+npm_local_volumes:
+  npm_data: "/data"
+  letsencrypt: "/etc/letsencrypt"
+
+npm_shared_volumes: {}
+
+npm_depends_on: ["{{ db_service_name | default('db') }}"]
+
+npm_db_host: "{{ db_service_name | default('db') }}"
+npm_db_port: "{{ db_port | default(3306) | int }}"
+npm_db_user: "{{ npm_role_name }}"
+npm_db_name: "{{ npm_role_name }}"
+
+npm_system_user: docker
+npm_system_group: docker
+npm_environment_variables: {}
+npm_secrets: {}
+
+
+
+environment:
+      # DISABLE_IPV6: ${NPM_DISABLE_IPV6:-false}
+      # User Information
+      PUID: ${NPM_PUID:-1001}
+      PGID: ${NPM_PGID:-1001}
+      # Mysql/Maria connection parameters:
+      DB_MYSQL_HOST: ${NPM_DB_HOST:-db}
+      DB_MYSQL_PORT: ${NPM_DB_PORT:-3306}
+      DB_MYSQL_USER: ${NPM_DB_USER:-npm}
+      DB_MYSQL_PASSWORD: ${NPM_DB_PASSWORD}
+      DB_MYSQL_NAME: ${NPM_DB_NAME:-npm}

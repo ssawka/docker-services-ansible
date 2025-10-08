@@ -10,7 +10,7 @@
 
 - name: Validate and Normalize common_host_name
   block:
-    - Name: Validate common_host_name
+    - name: Validate common_host_name
       ansible.builtin.assert:
         - common_host_name is defined
         - common_host_name is string
@@ -23,7 +23,7 @@
 
 - name: Validate and Normalize common_domain_name
   block:
-    - Name: Validate common_domain_name
+    - name: Validate common_domain_name
       ansible.builtin.assert:
         - common_domain_name is defined
         - common_domain_name is string

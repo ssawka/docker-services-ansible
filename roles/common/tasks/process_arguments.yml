@@ -12,9 +12,10 @@
   block:
     - name: Validate common_host_name
       ansible.builtin.assert:
-        - common_host_name is defined
-        - common_host_name is string
-        - (common_host_name | trim | length) > 0
+        that:
+          - common_host_name is defined
+          - common_host_name is string
+          - (common_host_name | trim | length) > 0
     - name: Normalize common_host_name
       ansible.builtin.set_fact:
         common_host_name: "{{ common_host_name | trim }}"
@@ -25,9 +26,10 @@
   block:
     - name: Validate common_domain_name
       ansible.builtin.assert:
-        - common_domain_name is defined
-        - common_domain_name is string
-        - (common_domain_name | trim | length) > 0
+        that:
+          - common_domain_name is defined
+          - common_domain_name is string
+          - (common_domain_name | trim | length) > 0
     - name: Normalize common_domain_name
       ansible.builtin.set_fact:
         common_domain_name: "{{ common_domain_name | trim }}"
@@ -36,7 +38,8 @@
 
 - name: Validate common_additional_system_packages
   ansible.builtin.assert:
-    - common_additional_system_packages is defined
-    - "(common_additional_system_packages | type_debug) == 'list'"
+    that:
+      - common_additional_system_packages is defined
+      - "(common_additional_system_packages | type_debug) == 'list'"
   tags:
     - always

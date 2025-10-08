@@ -10,6 +10,8 @@
     owner: "{{ docker_files_user }}"
     group: "{{ docker_files_group }}"
     mode: '2775'
+  tags:
+    - always
 
 - name: Include Service Roles
   vars:
@@ -17,6 +19,8 @@
   ansible.builtin.include_role:
     name: "{{ item }}"
   with_items: "{{ docker_files_included_services }}"
+  tags:
+    - always
 
 - name: Generate Docker Files
   become: yes
@@ -28,3 +32,5 @@
         owner: "{{ docker_files_user }}"
         group: "{{ docker_files_group }}"
         mode: '0664'
+  tags:
+    - always

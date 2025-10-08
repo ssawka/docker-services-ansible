@@ -10,6 +10,8 @@
     owner: "{{ db_system_user }}"
     group: "{{ db_system_group }}"
     mode: '2775'
+  tags:
+    - always
 
 - name: Create DB Password File
   become: yes
@@ -33,7 +35,7 @@
           ansible.builtin.copy:
             dest: "{{ db_password_file }}"
             content: >-
-              {{  lookup('ansible.builtin.password', /dev/null, 
+              {{  lookup('ansible.builtin.password', '/dev/null', 
                   chars=["ascii_letters", "digits"], length=15) }}
             owner: "{{ db_system_user }}"
             group: "{{ db_system_group }}"
@@ -46,6 +48,9 @@
           secrets: "{{ db.secrets | combine({'db_root_password': relpath}) }}"
       ansible.builtin.set_fact:
         db: "{{ db | combine(update) }}"
+  tags:
+    - always
+
 - name: Generate Files
   become: yes
   vars:
@@ -60,6 +65,8 @@
     owner: "{{ db_system_user }}"
     group: "{{ db_system_group }}"
     mode: '0664'
+  tags:
+    - always
 
 - name: Update docker_files Role
   block:
@@ -78,3 +85,5 @@
           shared_volumes: "{{ docker_files.shared_volumes | combine(db.shared_volumes) }}"
       ansible.builtin.set_fact:
         docker_files: "{{ docker_files | combine(update) }}"
+  tags:
+    - always

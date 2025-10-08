@@ -8,12 +8,21 @@
         common_domain_name: "{{ docker_services_ansible_domain_name }}"
       ansible.builtin.include_role:
         name: common
+      tags:
+        - common
+        - all
     - name: Install Docker
       ansible.builtin.include_role:
         name: docker_host
+      tags:
+        - docker
+        - all
     - name: Generate Docker Files
       vars:
         docker_files_included_services:
           - db
       ansible.builtin.include_role:
         name: docker_files
+      tags:
+        - docker-files
+        - all

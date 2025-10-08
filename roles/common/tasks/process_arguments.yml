@@ -1,0 +1,42 @@
+---
+
+- name: Validate common_upgrade_system_packages
+  ansible.builtin.assert:
+    that:
+      - common_upgrade_system_packages is defined
+      - common_upgrade_system_packages is boolean
+  tags:
+    - always
+
+- name: Validate and Normalize common_host_name
+  block:
+    - Name: Validate common_host_name
+      ansible.builtin.assert:
+        - common_host_name is defined
+        - common_host_name is string
+        - (common_host_name | trim | length) > 0
+    - name: Normalize common_host_name
+      ansible.builtin.set_fact:
+        common_host_name: "{{ common_host_name | trim }}"
+  tags:
+    - always
+
+- name: Validate and Normalize common_domain_name
+  block:
+    - Name: Validate common_domain_name
+      ansible.builtin.assert:
+        - common_domain_name is defined
+        - common_domain_name is string
+        - (common_domain_name | trim | length) > 0
+    - name: Normalize common_domain_name
+      ansible.builtin.set_fact:
+        common_domain_name: "{{ common_domain_name | trim }}"
+  tags:
+    - always
+
+- name: Validate common_additional_system_packages
+  ansible.builtin.assert:
+    - common_additional_system_packages is defined
+    - "(common_additional_system_packages | type_debug) == 'list'"
+  tags:
+    - always

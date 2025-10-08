@@ -1,5 +1,8 @@
 #SPDX-License-Identifier: MIT-0
 ---
 # defaults file for common
+common_upgrade_packages: yes
+common_upgrade_system_packages: yes
 common_host_name: "{{ inventory_hostname }}"
 common_domain_name: ""
+common_additional_system_packages: []

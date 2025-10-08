@@ -2,6 +2,57 @@
 ---
 # tasks file for common
 
+- name: Load OS Specific Variables
+  ansible.builtin.include_vars: "{{lookup('ansible.builtin.first_found', params)}}"
+  vars:
+    params:
+      files:
+        - '{{ ansible_distribution }}{{ ansible_distribution_version }}.yml'
+        - '{{ ansible_distribution }}{{ ansible_distribution_major_version }}.yml'
+        - '{{ ansible_distribution }}.yml'
+        - '{{ ansible_os_family }}.yml'
+        - main.yml
+      paths:
+        - 'vars'
+  tags:
+    - always
+
+- name: Process Arguments
+  ansible.builtin.include_tasks:
+    file: process_arguments.yml
+  tags:
+    - always
+
+- name: Upgrade System Packages
+  become: yes
+  block:
+    - name: Update Package Cache
+      ansible.builtin.apt:
+        update_cache: yes
+      when: "ansible_os_family == 'Debian'"
+    - name: Update System Packages
+      ansible.builtin.package:
+        name: '*'
+        state: latest
+  when: common_upgrade_system_packages
+  tags:
+    - always
+
+- name: Install System Packages
+  become: yes
+  vars:
+    system_packages: "{{ (required_system_packages + common_additional_system_packages) | list | ansible.builtin.unique }}"
+  block:
+    - name: Update Package Cache
+      ansible.builtin.apt:
+        update_cache: yes
+      when: "ansible_os_family == 'Debian'"
+    - name: Update System Packages
+      ansible.builtin.package:
+        name: "{{ system_packages }}"
+        state: present
+  when: (system_packages | length) > 0
+
 - name: Normalize Hostname
   vars:
     parts: "{{ common_host_name | split('.') }}"
@@ -10,11 +61,15 @@
   ansible.builtin.set_fact:
     common_hostname: "{{ host_name }}"
     common_domain_name: "{{ domain_name }}"
+  tags:
+    - always
 
 - name: Set Hostname
   become: yes
   ansible.builtin.hostname:
     name: "{{ common_hostname }}"
+  tags:
+    - always
 
 - name: Update /etc/hosts
   become: yes
@@ -24,3 +79,5 @@
     path: /etc/hosts
     regexp: "{{ common_hostname }}\\s+"
     line: "{{ default_ipv4_address }}  {{ common_hostname }}.{{ common_domain_name }} {{ common_hostname }}"
+  tags:
+    - always
